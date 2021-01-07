@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
@@ -18,7 +19,8 @@ namespace WindowsForms
 			{
 				ValutaBox.Items.Add(valutas[i]);
 			}
-
+            
+            
 		}
 
 		private void GetValutas()
@@ -29,21 +31,15 @@ namespace WindowsForms
             {
                 valutas.Add(prop.Name);
             }
-
         }
 
 		private void button1_Click(object sender, System.EventArgs e)
 		{
+            Console.WriteLine(Import().conversion_rates);
+            label1.Text = Import().conversion_rates.USD.ToString();
+        }
 
-		}
-
-        
-    }
-
-
-    class Rates
-    {
-        public static bool Import()
+        public API_Obj Import()
         {
             string URLString = "https://v6.exchangerate-api.com/v6/4c6472e788470054d03d83ac/latest/EUR";
 
@@ -51,10 +47,17 @@ namespace WindowsForms
             {
                 var json = webClient.DownloadString(URLString);
                 API_Obj Test = JsonConvert.DeserializeObject<API_Obj>(json);
-
-                return true;
-            }            
+                return Test;
+            }
         }
+
+
+    }
+
+
+    class Rates
+    {
+        
     }
 
     public class API_Obj
