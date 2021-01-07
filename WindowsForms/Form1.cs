@@ -8,26 +8,31 @@ namespace WindowsForms
 	public partial class Form1 : Form
 	{
 		List<string> valutas = new List<string>();
+        //ConversionRate conversionRates;
+        API_Obj apiObj = new API_Obj();
 
-		public Form1()
+        public Form1()
 		{
-			InitializeComponent();
 
-			GetValutas();
+            InitializeComponent();
+
+            Import();
+
+            GetValutas();
 
 			for (int i = 0; i < valutas.Count; i++)
 			{
 				ValutaBox.Items.Add(valutas[i]);
 			}
             
+       
             
 		}
 
 		private void GetValutas()
-		{
-            ConversionRate conversionRates = new ConversionRate();
+		{          
 
-            foreach (var prop in conversionRates.GetType().GetProperties())
+            foreach (var prop in apiObj.conversion_rates.GetType().GetProperties())
             {
                 valutas.Add(prop.Name);
             }
@@ -35,27 +40,51 @@ namespace WindowsForms
 
 		private void button1_Click(object sender, System.EventArgs e)
 		{
-            Console.WriteLine(Import().conversion_rates);
-            label1.Text = Import().conversion_rates.USD.ToString();
+            Type t = apiObj.conversion_rates.GetType();
+			Console.Write(t.GetProperties().Length);
+			Console.Write("HALLLOOO");
+            //System.Reflection.PropertyInfo api = apiObj.conversion_rates.GetType().GetProperty("AED");
+            //String name = (String)(api.GetValue("AED", null));
+            ////object str = apiObj.conversion_rates.GetType().GetField(ValutaBox.SelectedItem.ToString());
+            //foreach (var prop in props)
+            //{
+            //    if (prop.GetIndexParameters().Length == 0)
+            //        Console.WriteLine("   {0} ({1}): {2}", prop.Name,
+            //                          prop.PropertyType.Name,
+            //                          prop.GetValue("AED"));
+            //}
+            //Console.WriteLine(name);
+            
         }
 
-        public API_Obj Import()
+        private void Import()
         {
             string URLString = "https://v6.exchangerate-api.com/v6/4c6472e788470054d03d83ac/latest/EUR";
 
             using (var webClient = new System.Net.WebClient())
             {
-                var json = webClient.DownloadString(URLString);
-                API_Obj Test = JsonConvert.DeserializeObject<API_Obj>(json);
-                return Test;
+                var json = webClient.DownloadString(URLString); 
+                apiObj = JsonConvert.DeserializeObject<API_Obj>(json);
             }
         }
 
+		private void button1_Click_1(object sender, EventArgs e)
+		{
+			Console.WriteLine("Halllloo");
+			Type t = apiObj.conversion_rates.GetType();
+            //Console.WriteLine(t.GetProperties());
+            System.Reflection.PropertyInfo[] props = t.GetProperties();
 
-    }
 
+			foreach (var prop in props)
+			{
+                Console.WriteLine(prop.Attributes);
+			}
 
-    class Rates
+        }
+	}
+
+	class Rates
     {
         
     }
@@ -73,7 +102,7 @@ namespace WindowsForms
 
     public class ConversionRate
     {
-        public double AED { get; set; }
+        public double AED = 1.1;
         public double ARS { get; set; }
         public double AUD { get; set; }
         public double BGN { get; set; }
