@@ -5,14 +5,13 @@ using Newtonsoft.Json;
 
 namespace WindowsForms
 {
-	public partial class Form1 : Form
-	{
-		List<string> valutas = new List<string>();
-        //ConversionRate conversionRates;
+    public partial class Form1 : Form
+    {
+        List<string> valutas = new List<string>();
         API_Obj apiObj = new API_Obj();
 
         public Form1()
-		{
+        {
 
             InitializeComponent();
 
@@ -20,41 +19,19 @@ namespace WindowsForms
 
             GetValutas();
 
-			for (int i = 0; i < valutas.Count; i++)
-			{
-				ValutaBox.Items.Add(valutas[i]);
-			}
-            
-       
-            
-		}
+            for (int i = 0; i < valutas.Count; i++)
+            {
+                ValutaBox.Items.Add(valutas[i]);
+            }           
 
-		private void GetValutas()
-		{          
+        }
 
+        private void GetValutas()
+        {
             foreach (var prop in apiObj.conversion_rates.GetType().GetProperties())
             {
                 valutas.Add(prop.Name);
             }
-        }
-
-		private void button1_Click(object sender, System.EventArgs e)
-		{
-            Type t = apiObj.conversion_rates.GetType();
-			Console.Write(t.GetProperties().Length);
-			Console.Write("HALLLOOO");
-            //System.Reflection.PropertyInfo api = apiObj.conversion_rates.GetType().GetProperty("AED");
-            //String name = (String)(api.GetValue("AED", null));
-            ////object str = apiObj.conversion_rates.GetType().GetField(ValutaBox.SelectedItem.ToString());
-            //foreach (var prop in props)
-            //{
-            //    if (prop.GetIndexParameters().Length == 0)
-            //        Console.WriteLine("   {0} ({1}): {2}", prop.Name,
-            //                          prop.PropertyType.Name,
-            //                          prop.GetValue("AED"));
-            //}
-            //Console.WriteLine(name);
-            
         }
 
         private void Import()
@@ -63,31 +40,17 @@ namespace WindowsForms
 
             using (var webClient = new System.Net.WebClient())
             {
-                var json = webClient.DownloadString(URLString); 
+                var json = webClient.DownloadString(URLString);
                 apiObj = JsonConvert.DeserializeObject<API_Obj>(json);
             }
         }
 
-		private void button1_Click_1(object sender, EventArgs e)
-		{
-			Console.WriteLine("Halllloo");
-			Type t = apiObj.conversion_rates.GetType();
-            //Console.WriteLine(t.GetProperties());
-            System.Reflection.PropertyInfo[] props = t.GetProperties();
-
-
-			foreach (var prop in props)
-			{
-                Console.WriteLine(prop.Attributes);
-			}
-
+        private void button1_Click_1(object sender, EventArgs e)
+		{            
+            double temp = (double)typeof(ConversionRate).GetProperty(ValutaBox.SelectedItem.ToString()).GetValue(apiObj.conversion_rates);
+            label1.Text = "Koers: " + temp;
         }
 	}
-
-	class Rates
-    {
-        
-    }
 
     public class API_Obj
     {
@@ -102,7 +65,7 @@ namespace WindowsForms
 
     public class ConversionRate
     {
-        public double AED = 1.1;
+        public double AED { get; set; }
         public double ARS { get; set; }
         public double AUD { get; set; }
         public double BGN { get; set; }
@@ -154,4 +117,5 @@ namespace WindowsForms
         public double UYU { get; set; }
         public double ZAR { get; set; }
     }
+
 }
