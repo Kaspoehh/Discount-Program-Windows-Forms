@@ -3,66 +3,164 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
+///README
+/// <summary>
+/// Step1: Install Newtonsoft json package 
+/// Step2: Get you're api key at: https://www.exchangerate-api.com/
+/// Example code C#: https://www.exchangerate-api.com/docs/c-sharp-currency-api
+/// </summary>
+///README
+
 namespace WindowsForms
 {
     public partial class Form1 : Form
     {
-        List<string> valutas = new List<string>();
+            
+        private readonly string standardFrom = "EUR";
+        private readonly string standardTo = "USD";
+               
+		private readonly string apiKey = "4c6472e788470054d03d83ac";
+
+		//List with all the valuta types
+		readonly List<string> valutas = new List<string>();        
+        
         API_Obj apiObj = new API_Obj();
 
+        private bool fromValutaChanged;
+        private bool updatedValutas;
+
+        //Init
         public Form1()
         {
 
             InitializeComponent();
 
-            Import();
+            UpdateValutaValues(standardFrom);
 
-            GetValutas();
+            if(updatedValutas)
+                GetValutas();
 
+            //Add valuta list to both boxes of valuta's that are vissible
             for (int i = 0; i < valutas.Count; i++)
             {
-                ValutaBox.Items.Add(valutas[i]);
-            }           
-
-        }
-
-        private void GetValutas()
-        {
-            foreach (var prop in apiObj.conversion_rates.GetType().GetProperties())
-            {
-                valutas.Add(prop.Name);
+                FromValutaBox.Items.Add(valutas[i]);
+                ToValutaBox.Items.Add(valutas[i]);
             }
         }
 
-        private void Import()
+        /// <summary>
+        /// Get all the valuta types and store them in a list
+        /// </summary>        
+        private void GetValutas()
         {
-            string URLString = "https://v6.exchangerate-api.com/v6/4c6472e788470054d03d83ac/latest/EUR";
+			foreach (var prop in apiObj.conversion_rates.GetType().GetProperties())
+			{
+				valutas.Add(prop.Name);
+			}
+		}
+
+        /// <summary>
+        /// Synchornize valuta values with api request
+        /// </summary>
+        /// <param name="from"></param>
+        private void UpdateValutaValues(string from)
+        {
+            updatedValutas = false;
+            Error.Enabled = false;
+            string URLString = "https://v6.exchangerate-api.com/v6/" + apiKey + "/latest/" + from;
 
             using (var webClient = new System.Net.WebClient())
             {
                 var json = webClient.DownloadString(URLString);
                 apiObj = JsonConvert.DeserializeObject<API_Obj>(json);
             }
-        }
+            ///if not succesfull
+            if(apiObj.result == "error")
+			{
+                Console.WriteLine("Error updating Valuta's " + this.Name);
+                Error.Text = "Error updating Valuta's ";
+                Error.Visible = true;
+                return;
+			}
+            
+            fromValutaChanged = false;
+            updatedValutas = true;
 
+            Console.WriteLine("Updated valuta's");
+        } 
+
+        /// <summary>
+        /// When button clicked calculate 
+        /// </summary>c
         private void button1_Click_1(object sender, EventArgs e)
-		{            
-            double temp = (double)typeof(ConversionRate).GetProperty(ValutaBox.SelectedItem.ToString()).GetValue(apiObj.conversion_rates);
-            label1.Text = "Koers: " + temp;
-        }
+		{
+                if (fromValutaChanged)
+                {
+                    string selected = FromValutaBox.SelectedItem.ToString();
+                    UpdateValutaValues(selected);
+                }
+                if (updatedValutas)
+                {
+                    double temp;
+                    string toValuta;
+                    string fromValuta;
+                    float amount;
+
+                    if (ToValutaBox.SelectedItem != null)
+                    {
+                        toValuta = ToValutaBox.SelectedItem.ToString();
+                    }
+                    else
+                    {
+                        toValuta = standardTo;
+                    }
+
+                    if (FromValutaBox.SelectedItem != null)
+                    {
+                        fromValuta = FromValutaBox.SelectedItem.ToString();
+                    }
+                    else
+                    {
+                        fromValuta = standardFrom;
+                    }
+
+                    temp = (double)typeof(ConversionRate).GetProperty(toValuta).GetValue(apiObj.conversion_rates);                  
+
+                    if(float.TryParse(Amount.Text, out amount))
+					{
+                       Total.Text = amount + " " + fromValuta + " = " + (temp * amount) + " " + toValuta;
+                    }
+                    else
+					{
+                        Total.Text = "1 " + fromValuta + " = " + temp + " " + toValuta;                       
+                    }
+                }
+            }
+        
+
+        /// <summary>
+        /// if from box changed update valuta's next time when calculate button is pressed
+        /// </summary>
+		private void FromValutaBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+            fromValutaChanged = true;        
+		}
+
+		
 	}
 
-    public class API_Obj
+	/// <summary>
+	/// Contains all data about valuta
+	/// </summary>
+	public class API_Obj
     {
         public string result { get; set; }
-        public string documentation { get; set; }
-        public string terms_of_use { get; set; }
-        public string time_zone { get; set; }
-        public string time_last_update { get; set; }
-        public string time_next_update { get; set; }
         public ConversionRate conversion_rates { get; set; }
     }
 
+    /// <summary>
+    /// All currently available valluta's
+    /// </summary>
     public class ConversionRate
     {
         public double AED { get; set; }
